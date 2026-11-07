@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد وهيكلي أوامر أغاني Suno AI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Tajawal & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        suno: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                            dark: '#0f0c1b',
+                            card: '#1a162b',
+                            border: '#2a2444'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0d0a18;
+            color: #e2e8f0;
+            font-family: 'Tajawal', sans-serif;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(124, 58, 237, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(236, 72, 153, 0.12) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #151026;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b2d5d;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6d28d9;
+        }
+
+        /* Tag Button Glow Effect */
+        .tag-btn {
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+        .tag-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px 0 rgba(124, 58, 237, 0.35);
+        }
+        .tag-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Toast Animation */
+        .toast {
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Textarea styling */
+        textarea {
+            tab-size: 4;
+            line-height: 1.7;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-suno-border/60 bg-suno-dark/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-suno-600 to-pink-500 flex items-center justify-center shadow-lg shadow-suno-600/30">
+                    <i class="fa-solid font-bold fa-music text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg sm:text-xl text-white tracking-wide flex items-center gap-2">
+                        <span>مُهندس أوامر Suno AI</span>
+                        <span class="text-xs bg-suno-600/30 text-suno-400 border border-suno-500/40 px-2 py-0.5 rounded-full font-normal">v2.0</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 hidden sm:block">أداة احترافية لتنسيق كلمات القصائد والأغاني وتقسيم هياكلها لـ Suno AI</p>
+                </div>
+            </div>
+
+            <!-- Quick Global Controls -->
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <button onclick="loadSamplePoem()" class="px-3 py-1.5 text-xs sm:text-sm bg-suno-card hover:bg-suno-border border border-suno-border text-suno-100 rounded-lg flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-wand-magic-sparkles text-suno-400"></i>
+                    <span>تعبئة نموذج تجريبي</span>
+                </button>
+                <button onclick="clearEditor()" class="px-3 py-1.5 text-xs sm:text-sm bg-red-950/40 hover:bg-red-900/60 border border-red-800/50 text-red-300 rounded-lg flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span class="hidden sm:inline">مسح النص</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+        
+        <!-- App Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- RIGHT PANEL: Metadata & Tag Toolbar (5 Cols) -->
+            <div class="lg:col-span-5 space-y-6 order-2 lg:order-1">
+                
+                <!-- Song Metadata Settings -->
+                <div class="bg-suno-card/90 border border-suno-border rounded-2xl p-5 shadow-xl backdrop-blur-sm">
+                    <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2 border-b border-suno-border/60 pb-2">
+                        <i class="fa-solid fa-[#8b5cf6] fa-sliders text-suno-400"></i>
+                        <span>بيانات الأغنية والملف</span>
+                    </h2>
+
+                    <div class="space-y-4">
+                        <!-- Song Title -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">اسم الأغنية / عنوان القصيدة</label>
+                            <div class="relative">
+                                <input type="text" id="songTitle" value="قصيدة_الأمل" placeholder="مثال: قصيدة_الليل" 
+                                    class="w-full bg-suno-dark border border-suno-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-suno-500 focus:ring-1 focus:ring-suno-500 transition-all">
+                                <i class="fa-solid fa-pen-nib absolute left-3 top-3 text-gray-500 text-xs"></i>
+                            </div>
+                            <span class="text-[10px] text-gray-400 mt-1 block">سيتم التصدير بالاسم: <code id="filenamePreview" class="text-suno-400 dir-ltr font-mono">SunoAI_Song_Prompt_قصيدة_الأمل.txt</code></span>
+                        </div>
+
+                        <!-- Music Style Prompt -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">نمط الموسيقى (Style / Genre Prompt)</label>
+                            <input type="text" id="songStyle" placeholder="مثال: Arabic Tarab, Oud, Orchestral, Emotional, 80bpm" 
+                                class="w-full bg-suno-dark border border-suno-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-suno-500 focus:ring-1 focus:ring-suno-500 transition-all font-mono text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Structural & Instrumental Tags Toolbar -->
+                <div class="bg-suno-card/90 border border-suno-border rounded-2xl p-5 shadow-xl backdrop-blur-sm space-y-5">
+                    
+                    <div>
+                        <h2 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-cubes text-suno-400"></i>
+                            <span>لوح علامات الهيكل والأداء</span>
+                        </h2>
+                        <p class="text-xs text-gray-400">انقر على أي علامة لإدراجها فوراً في موضع المؤشر (Cursor)</p>
+                    </div>
+
+                    <!-- Custom Tag Creator Input -->
+                    <div class="bg-suno-dark/60 p-2.5 border border-suno-border/80 rounded-xl flex items-center gap-2">
+                        <input type="text" id="customTagInput" placeholder="اكتب وسم مخصص (مثال: Flute Solo)" 
+                            class="flex-1 bg-suno-dark border border-suno-border rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-suno-500 font-mono"
+                            onkeypress="if(event.key==='Enter') addCustomTag()">
+                        <button onclick="addCustomTag()" class="px-3 py-1.5 bg-suno-600 hover:bg-suno-500 text-white text-xs rounded-lg font-medium transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>إضافة</span>
+                        </button>
+                    </div>
+
+                    <!-- Category 1: Song Structure (فصول الأغنية) -->
+                    <div>
+                        <h3 class="text-xs font-semibold text-suno-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-diagram-project text-[11px]"></i>
+                            <span>فصول وتقسيمات الأغنية</span>
+                        </h3>
+                        <div class="flex flex-wrap gap-1.5" id="structureTags">
+                            <!-- Buttons generated by JS or static -->
+                        </div>
+                    </div>
+
+                    <!-- Category 2: Solos & Instruments (الصولو والعزف) -->
+                    <div>
+                        <h3 class="text-xs font-semibold text-pink-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-guitar text-[11px]"></i>
+                            <span>الصولو والآلات الموسيقية</span>
+                        </h3>
+                        <div class="flex flex-wrap gap-1.5" id="instrumentTags">
+                            <!-- Buttons generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Category 3: Vocal Style & Extras (الأداء الصوتي) -->
+                    <div>
+                        <h3 class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-microphone text-[11px]"></i>
+                            <span>الأداء الصوتي والتأثيرات</span>
+                        </h3>
+                        <div class="flex flex-wrap gap-1.5" id="vocalTags">
+                            <!-- Buttons generated by JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- LEFT PANEL: Interactive Editor & Actions (7 Cols) -->
+            <div class="lg:col-span-7 flex flex-col space-y-4 order-1 lg:order-2">
+                
+                <!-- Main Editor Card -->
+                <div class="bg-suno-card/90 border border-suno-border rounded-2xl p-5 shadow-xl backdrop-blur-sm flex-grow flex flex-col">
+                    
+                    <!-- Editor Header / Stats -->
+                    <div class="flex items-center justify-between pb-3 mb-3 border-b border-suno-border/60">
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <i class="fa-solid fa-file-lines text-suno-400"></i>
+                            <span class="font-bold text-white text-sm">محرر كلمات القصيدة / الأغنية</span>
+                        </div>
+                        <div class="flex items-center space-x-4 space-x-reverse text-xs text-gray-400">
+                            <span>الأسطر: <strong id="lineCount" class="text-suno-400">0</strong></span>
+                            <span>الكلمات: <strong id="wordCount" class="text-suno-400">0</strong></span>
+                            <span>الحروف: <strong id="charCount" class="text-suno-400">0</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Editor Textarea Area -->
+                    <div class="relative flex-grow min-h-[380px] lg:min-h-[460px]">
+                        <textarea id="lyricsEditor" 
+                            placeholder="ضع قصيدتك أو كلمات الأغنية هنا... ثم اضغط بالماوس في أي موضع لتحديد مكان المؤشر، واضغط على الأوسام من اللوح على اليمين لإدراجها فوراً."
+                            class="w-full h-full bg-suno-dark/90 border border-suno-border/80 rounded-xl p-4 text-white placeholder-gray-500 font-sans text-base leading-relaxed focus:outline-none focus:border-suno-500 focus:ring-1 focus:ring-suno-500 resize-y transition-all font-mono"
+                            oninput="updateStats()" onkeyup="updateCursorPosition()" onclick="updateCursorPosition()"></textarea>
+                    </div>
+
+                    <!-- Footer Help Tip -->
+                    <div class="mt-3 flex items-center justify-between text-xs text-gray-400 bg-suno-dark/40 px-3 py-2 rounded-lg border border-suno-border/40">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-info text-suno-400"></i>
+                            <span>نصيحة: يمكنك كتابة أي وسم يدوي بين أقواس مربع مثل `[Chorus]` أو `[Oud Solo]`</span>
+                        </div>
+                        <span id="cursorPosIndicator" class="font-mono text-[11px] text-gray-500">المؤشر: 0:0</span>
+                    </div>
+
+                </div>
+
+                <!-- Export & Action Buttons Toolbar -->
+                <div class="bg-suno-card/90 border border-suno-border rounded-2xl p-4 shadow-xl backdrop-blur-sm grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    
+                    <!-- Export File Button -->
+                    <button onclick="downloadPromptFile()" 
+                        class="w-full py-3 px-4 bg-gradient-to-r from-suno-600 to-suno-800 hover:from-suno-500 hover:to-suno-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-suno-600/30 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                        <i class="fa-solid fa-download text-base"></i>
+                        <span>حفظ الملف (SunoAI_Song_Prompt)</span>
+                    </button>
+
+                    <!-- Copy to Clipboard Button -->
+                    <button onclick="copyToClipboard()" 
+                        class="w-full py-3 px-4 bg-suno-dark hover:bg-suno-border border border-suno-500/50 text-suno-100 font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                        <i class="fa-regular fa-copy text-base text-suno-400"></i>
+                        <span>نسخ النمط والكلمات كاملاً</span>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer Credit -->
+    <footer class="border-t border-suno-border/40 bg-suno-dark/60 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>جميع الحقوق محفوظة &copy; 2026 - مُهندس أوامر Suno AI المستقل</span>
+            <span class="flex items-center gap-1">
+                <span>مصمم لدعم برومبتات أغاني Suno AI بكفاءة عالية</span>
+                <i class="fa-solid fa-bolt text-amber-400"></i>
+            </span>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Widget -->
+    <div id="toast" class="toast fixed bottom-6 left-6 z-50 bg-suno-card border border-suno-500 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+        <div id="toastIcon" class="w-8 h-8 rounded-lg bg-suno-600/30 text-suno-400 flex items-center justify-center">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="font-bold text-sm text-white">تمت العملية</h4>
+            <p id="toastMessage" class="text-xs text-gray-300">تم نسخ أوامر الأغنية بنجاح</p>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Tag Categories Definitions
+        const tagCategories = {
+            structure: [
+                { label: '[Intro]', tag: '[Intro]', desc: 'مقدمة الموسيقى' },
+                { label: '[Verse 1]', tag: '[Verse 1]', desc: 'المقطع الأول' },
+                { label: '[Verse 2]', tag: '[Verse 2]', desc: 'المقطع الثاني' },
+                { label: '[Pre-Chorus]', tag: '[Pre-Chorus]', desc: 'ما قبل الكورال' },
+                { label: '[Chorus]', tag: '[Chorus]', desc: 'الكورال الرئيسي' },
+                { label: '[Bridge]', tag: '[Bridge]', desc: 'الجسر الموسيقي' },
+                { label: '[Outro]', tag: '[Outro]', desc: 'خاتمة الأغنية' },
+                { label: '[Ending]', tag: '[Ending]', desc: 'النهاية' },
+                { label: '[Fade Out]', tag: '[Fade Out]', desc: 'تلاشي الصوت' }
+            ],
+            instruments: [
+                { label: '[Solo]', tag: '[Solo]', desc: 'صولو عام' },
+                { label: '[Oud Solo]', tag: '[Oud Solo]', desc: 'صولو عود' },
+                { label: '[Guitar Solo]', tag: '[Guitar Solo]', desc: 'صولو جيتار' },
+                { label: '[Piano Solo]', tag: '[Piano Solo]', desc: 'صولو بيانو' },
+                { label: '[Saxophone Solo]', tag: '[Saxophone Solo]', desc: 'صولو ساكسفون' },
+                { label: '[Violin Solo]', tag: '[Violin Solo]', desc: 'صولو كمأن' },
+                { label: '[Acoustic Guitar]', tag: '[Acoustic Guitar]', desc: 'جيتار أكوستيك' },
+                { label: '[Beat Drop]', tag: '[Beat Drop]', desc: 'هبوط الإيقاع' },
+                { label: '[Kanoon Solo]', tag: '[Kanoon Solo]', desc: 'صولو قانون' }
+            ],
+            vocals: [
+                { label: '[Humming]', tag: '[Humming]', desc: 'دندنة وصوت همس' },
+                { label: '[Whistling]', tag: '[Whistling]', desc: 'صفير' },
+                { label: '[Spoken Word]', tag: '[Spoken Word]', desc: 'إلقاء صوّتي' },
+                { label: '[Ad-lib]', tag: '[Ad-lib]', desc: 'ارتجال صوّتي' },
+                { label: '[Chants]', tag: '[Chants]', desc: 'هتافات كورال' },
+                { label: '[Whisper]', tag: '[Whisper]', desc: 'همس' },
+                { label: '[Laughter]', tag: '[Laughter]', desc: 'ضحكات' }
+            ]
+        };
+
+        // DOM Elements
+        const editor = document.getElementById('lyricsEditor');
+        const songTitleInput = document.getElementById('songTitle');
+        const songStyleInput = document.getElementById('songStyle');
+        const filenamePreview = document.getElementById('filenamePreview');
+        const cursorPosIndicator = document.getElementById('cursorPosIndicator');
+
+        // Track Cursor Position inside textarea
+        let savedCursorPosition = 0;
+
+        // Initialize Page
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTags();
+            updateFilenamePreview();
+            updateStats();
+
+            // Listeners for filename updates
+            songTitleInput.addEventListener('input', updateFilenamePreview);
+        });
+
+        // Render Tag Buttons into Categories
+        function renderTags() {
+            renderTagGroup('structureTags', tagCategories.structure, 'bg-suno-600/20 hover:bg-suno-600/40 text-suno-200 border-suno-500/30');
+            renderTagGroup('instrumentTags', tagCategories.instruments, 'bg-pink-950/30 hover:bg-pink-900/50 text-pink-200 border-pink-700/40');
+            renderTagGroup('vocalTags', tagCategories.vocals, 'bg-amber-950/30 hover:bg-amber-900/50 text-amber-200 border-amber-700/40');
+        }
+
+        function renderTagGroup(containerId, tags, styleClasses) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            tags.forEach(item => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `tag-btn text-xs px-2.5 py-1.5 rounded-lg border font-mono font-medium ${styleClasses} flex items-center gap-1`;
+                btn.title = item.desc;
+                btn.onclick = () => insertTagAtCursor(item.tag);
+                btn.innerHTML = `<span>${item.label}</span>`;
+                container.appendChild(btn);
+            });
+        }
+
+        // Insert Tag precisely where cursor is positioned
+        function insertTagAtCursor(tagText) {
+            const startPos = editor.selectionStart;
+            const endPos = editor.selectionEnd;
+            const text = editor.value;
+
+            // Ensure tag is nicely surrounded by newlines if inserted in between lines
+            let formattedTag = tagText;
+            
+            // Check preceding character
+            if (startPos > 0 && text[startPos - 1] !== '\n') {
+                formattedTag = '\n' + formattedTag;
+            }
+            // Check succeeding character
+            if (endPos < text.length && text[endPos] !== '\n') {
+                formattedTag = formattedTag + '\n';
+            } else if (endPos === text.length) {
+                formattedTag = formattedTag + '\n';
+            }
+
+            // Replace current selection / insert text
+            editor.value = text.substring(0, startPos) + formattedTag + text.substring(endPos);
+
+            // Move cursor to position right after inserted tag
+            const newCursorPos = startPos + formattedTag.length;
+            editor.focus();
+            editor.setSelectionRange(newCursorPos, newCursorPos);
+
+            // Update Statistics
+            updateStats();
+            updateCursorPosition();
+            
+            // Highlight text area temporarily
+            editor.classList.add('ring-2', 'ring-suno-500');
+            setTimeout(() => editor.classList.remove('ring-2', 'ring-suno-500'), 300);
+        }
+
+        // Add Custom Tag from User Input
+        function addCustomTag() {
+            const input = document.getElementById('customTagInput');
+            let value = input.value.trim();
+
+            if (!value) return;
+
+            // Format into [Tag] if user didn't write brackets
+            if (!value.startsWith('[')) value = '[' + value;
+            if (!value.endsWith(']')) value = value + ']';
+
+            // Insert into editor
+            insertTagAtCursor(value);
+
+            // Clear input
+            input.value = '';
+        }
+
+        // Update Stats (Lines, Words, Chars)
+        function updateStats() {
+            const text = editor.value;
+            const lines = text ? text.split('\n').length : 0;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+
+            document.getElementById('lineCount').innerText = lines;
+            document.getElementById('wordCount').innerText = words;
+            document.getElementById('charCount').innerText = chars;
+        }
+
+        // Update Cursor Position Info
+        function updateCursorPosition() {
+            const pos = editor.selectionStart;
+            const textTillCursor = editor.value.substring(0, pos);
+            const line = textTillCursor.split('\n').length;
+            const col = pos - textTillCursor.lastIndexOf('\n');
+            cursorPosIndicator.innerText = `المؤشر: السطر ${line} ، العمود ${col}`;
+        }
+
+        // Update Filename Preview based on Song Title
+        function updateFilenamePreview() {
+            const rawTitle = songTitleInput.value.trim() || 'My_Song';
+            const safeTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '_');
+            filenamePreview.innerText = `SunoAI_Song_Prompt_${safeTitle}.txt`;
+        }
+
+        // Generate Full Suno AI Formatted Output Text
+        function generateFullPrompt() {
+            const title = songTitleInput.value.trim() || 'بدون عنوان';
+            const style = songStyleInput.value.trim();
+            const lyrics = editor.value.trim();
+
+            let fullText = `=== SUNO AI SONG PROMPT ===\n`;
+            fullText += `Title: ${title}\n`;
+            if (style) {
+                fullText += `Style / Genre: ${style}\n`;
+            }
+            fullText += `===========================\n\n`;
+            fullText += lyrics;
+
+            return fullText;
+        }
+
+        // Download Prompt File as .txt
+        function downloadPromptFile() {
+            const lyrics = editor.value.trim();
+            if (!lyrics) {
+                showToast('تنبيه', 'يرجى كتابة كلمات أو إضافة أوسام قبل الحفظ', 'fa-triangle-exclamation', 'bg-amber-600/30 text-amber-400');
+                return;
+            }
+
+            const rawTitle = songTitleInput.value.trim() || 'My_Song';
+            const safeTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '_');
+            const fileName = `SunoAI_Song_Prompt_${safeTitle}.txt`;
+            const content = generateFullPrompt();
+
+            // Create blob and download link
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+
+            showToast('تم التصدير بنجاح', `تم حفظ الملف باسم ${fileName}`, 'fa-file-arrow-down', 'bg-emerald-600/30 text-emerald-400');
+        }
+
+        // Copy Text to Clipboard
+        function copyToClipboard() {
+            const lyrics = editor.value.trim();
+            if (!lyrics) {
+                showToast('تنبيه', 'لا يوجد نص لنخسه!', 'fa-triangle-exclamation', 'bg-amber-600/30 text-amber-400');
+                return;
+            }
+
+            const fullText = generateFullPrompt();
+
+            // ExecCommand Fallback for strict iframe permissions
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = fullText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('تم النسخ', 'تم نسخ النص الكامل وجاهز للصق في Suno AI', 'fa-copy', 'bg-suno-600/30 text-suno-400');
+            } catch (err) {
+                showToast('خطأ', 'فشل النسخ تلقائياً، يرجى النسخ يدوياً', 'fa-circle-xmark', 'bg-red-600/30 text-red-400');
+            } finally {
+                document.body.removeChild(tempTextArea);
+            }
+        }
+
+        // Clear Editor with confirmation
+        function clearEditor() {
+            if (editor.value.trim() !== '') {
+                // Using modern custom confirmation prompt or confirm
+                const confirmClear = window.confirm('هل أنت تأكد من رغبتك في مسح كافة النصوص في المحرر؟');
+                if (confirmClear) {
+                    editor.value = '';
+                    updateStats();
+                    showToast('تم المسح', 'تم تفريغ المحرر بنجاح', 'fa-trash-can', 'bg-red-600/30 text-red-400');
+                }
+            }
+        }
+
+        // Load Pre-structured Sample Poem
+        function loadSamplePoem() {
+            songTitleInput.value = "صوت_الصحراء";
+            songStyleInput.value = "Modern Arabic Tarab, Oud Solo, Cinematic Strings, Deep Bass, 85 bpm";
+
+            const sampleText = `[Intro]
+[Oud Solo]
+[Acoustic Guitar]
+
+[Verse 1]
+في سكون الليل يناديني الأمل
+والنجم في الآفاق يعزف ما اكتمل
+يا صحراء الروح قولي واشهدي
+أنني للحب صوغت الجمل
+
+[Pre-Chorus]
+[Violin Solo]
+وتمايلت أوراق قلبي للحنين
+صوتٌ شجيٌ يسحر المتعبين
+
+[Chorus]
+[Beat Drop]
+يا ليلُ حدّثني عن القمرِ البعيد
+وعن الهوى المكتوب في القلبِ التليد
+نحن السرى والعشق في أنفاسنا
+لحنٌ يجدد ذكانا في كل عيد
+
+[Verse 2]
+[Humming]
+خطواتنا رسمت على الرملِ الأثر
+ونسيج أحلامٍ تداعبها الصور
+
+[Bridge]
+[Kanoon Solo]
+[Spoken Word]
+"ولربما بعد الغيابِ تلاقٍ... ولربما يصفو الزمان"
+
+[Chorus]
+يا ليلُ حدّثني عن القمرِ البعيد
+وعن الهوى المكتوب في القلبِ التليد
+
+[Outro]
+[Oud Solo]
+[Fade Out]
+[Ending]`;
+
+            editor.value = sampleText;
+            updateFilenamePreview();
+            updateStats();
+            showToast('نموذج جاهز', 'تم تحميل القصيدة النموذجية مع الأوسام بنجاح', 'fa-wand-magic-sparkles', 'bg-suno-600/30 text-suno-400');
+        }
+
+        // Notification Toast Handler
+        function showToast(title, message, iconClass, colorClasses) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastTitle.innerText = title;
+            toastMessage.innerText = message;
+            toastIcon.className = `w-8 h-8 rounded-lg flex items-center justify-center ${colorClasses}`;
+            toastIcon.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
